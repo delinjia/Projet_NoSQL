@@ -1,0 +1,1429 @@
+﻿{
+  "paragraphs": [
+    {
+      "text": "%md\n## 2. Data Pre-processing",
+      "user": "anonymous",
+      "dateUpdated": "2021-01-18T10:57:06+0100",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<h2>2. Data Pre-processing</h2>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1610963814549_250308913",
+      "id": "paragraph_1610963814549_250308913",
+      "dateCreated": "2021-01-18T10:56:54+0100",
+      "dateStarted": "2021-01-18T10:57:06+0100",
+      "dateFinished": "2021-01-18T10:57:06+0100",
+      "status": "FINISHED",
+      "focus": true,
+      "$$hashKey": "object:2306"
+    },
+    {
+      "text": "%md\nDans cette partie, nous allons décompresser les fichers stocké sur S3 et les convertir en Data Frame. De plus, les pré-traitement sont demandés dans cette partie pour avoir propre DF.",
+      "user": "anonymous",
+      "dateUpdated": "2021-01-22T15:25:54+0100",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1611325460140_986602390",
+      "id": "paragraph_1611325460140_986602390",
+      "dateCreated": "2021-01-22T15:24:20+0100",
+      "status": "FINISHED",
+      "focus": true,
+      "$$hashKey": "object:5864",
+      "dateFinished": "2021-01-22T15:25:54+0100",
+      "dateStarted": "2021-01-22T15:25:54+0100",
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<p>Dans cette partie, nous allons décompresser les fichers stocké sur S3 et les convertir en Data Frame. De plus, les pré-traitement sont demandés dans cette partie pour avoir propre DF.</p>\n\n</div>"
+          }
+        ]
+      }
+    },
+    {
+      "text": "import sys.process._\nimport java.net.URL\nimport java.io.File\nimport java.io.File\nimport java.nio.file.{Files, StandardCopyOption}\nimport java.net.HttpURLConnection \nimport org.apache.spark.sql.functions._\n\nimport org.apache.spark.sql.SQLContext\nimport org.apache.spark.input.PortableDataStream\nimport java.util.zip.ZipInputStream\nimport java.io.BufferedReader\nimport java.io.InputStreamReader\n\nimport com.amazonaws.services.s3.AmazonS3Client\nimport com.amazonaws.auth.BasicAWSCredentials\nimport com.amazonaws.auth.BasicSessionCredentials",
+      "user": "anonymous",
+      "dateUpdated": "2021-01-22T15:33:44+0100",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "import sys.process._\nimport java.net.URL\nimport java.io.File\nimport java.io.File\nimport java.nio.file.{Files, StandardCopyOption}\nimport java.net.HttpURLConnection\nimport org.apache.spark.sql.functions._\nimport org.apache.spark.sql.SQLContext\nimport org.apache.spark.input.PortableDataStream\nimport java.util.zip.ZipInputStream\nimport java.io.BufferedReader\nimport java.io.InputStreamReader\n"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1610963802860_1263413575",
+      "id": "paragraph_1610963802860_1263413575",
+      "dateCreated": "2021-01-18T10:56:42+0100",
+      "dateStarted": "2021-01-22T12:14:45+0100",
+      "dateFinished": "2021-01-22T12:14:46+0100",
+      "status": "FINISHED",
+      "$$hashKey": "object:2307"
+    },
+    {
+      "text": "// Configuration de l'accès au bucket S3\n\nimport com.amazonaws.services.s3.AmazonS3Client\nimport com.amazonaws.auth.BasicAWSCredentials\nimport com.amazonaws.auth.BasicSessionCredentials\n\nval AWS_ID = \"xxxx\"\nval AWS_KEY = \"xxxx\"\nval AWS_SESSION_TOKEN =\"xxxx\" // la classe AmazonS3Client n'est pas serializable\n// on rajoute l'annotation @transient pour dire a Spark de ne pas essayer de serialiser cette classe et l'envoyer aux executeurs\n@transient val awsClient = new AmazonS3Client(new BasicSessionCredentials(AWS_ID, AWS_KEY, AWS_SESSION_TOKEN))\n\nsc.hadoopConfiguration.set(\"fs.s3a.access.key\", AWS_ID) // mettre votre ID du fichier credentials.csv\nsc.hadoopConfiguration.set(\"fs.s3a.secret.key\", AWS_KEY) // mettre votre secret du fichier credentials.csv\nsc.hadoopConfiguration.set(\"fs.s3a.session.token\", AWS_SESSION_TOKEN)",
+      "user": "anonymous",
+      "dateUpdated": "2021-01-22T15:42:24+0100",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1610963857759_483030620",
+      "id": "paragraph_1610963857759_483030620",
+      "dateCreated": "2021-01-18T10:57:37+0100",
+      "status": "READY",
+      "$$hashKey": "object:2309"
+    },
+    {
+      "user": "anonymous",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1611325595038_905671107",
+      "id": "paragraph_1611325595038_905671107",
+      "dateCreated": "2021-01-22T15:26:35+0100",
+      "status": "FINISHED",
+      "focus": true,
+      "$$hashKey": "object:5952",
+      "text": "%md\nNous préparons trois dataframes ici, chaque DF correspond à un type de données: EVENTS, GKG et MENTIONS. \nDans chaque DF, nous combine un DF en anglais avec un DF en autre langues.",
+      "dateUpdated": "2021-01-22T15:30:27+0100",
+      "dateFinished": "2021-01-22T15:30:27+0100",
+      "dateStarted": "2021-01-22T15:30:27+0100",
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<p>Nous préparons trois dataframes ici, chaque DF correspond à un type de données: EVENTS, GKG et MENTIONS.<br />\nDans chaque DF, nous combine un DF en anglais avec un DF en autre langues.</p>\n\n</div>"
+          }
+        ]
+      }
+    },
+    {
+      "text": "%md \n### 2.a  EVENT",
+      "user": "anonymous",
+      "dateUpdated": "2021-01-18T11:08:47+0100",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<h3>2.a  EVENT</h3>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1610964294797_2058339651",
+      "id": "paragraph_1610964294797_2058339651",
+      "dateCreated": "2021-01-18T11:04:54+0100",
+      "dateStarted": "2021-01-18T11:08:47+0100",
+      "dateFinished": "2021-01-18T11:08:47+0100",
+      "status": "FINISHED",
+      "$$hashKey": "object:2310"
+    },
+    {
+      "text": "// décompresser les fichers zip et transformer en DF\nval textRDD_eng = sc.binaryFiles(\"s3://delin-jia-telecom-msbgd2020/20201001[0-9]*.export.CSV.zip\").\n   flatMap { \n       case (name: String, content: PortableDataStream) =>\n          val zis = new ZipInputStream(content.open)\n          Stream.continually(zis.getNextEntry).\n                takeWhile(_ != null).\n                flatMap { _ =>\n                    val br = new BufferedReader(new InputStreamReader(zis))\n                    Stream.continually(br.readLine()).takeWhile(_ != null)\n                }\n    }\n    \nval textRDD_translate = sc.binaryFiles(\"s3://delin-jia-telecom-msbgd2020/20201001[0-9]*.translation.export.CSV.zip\"). \n   flatMap { \n       case (name: String, content: PortableDataStream) =>\n          val zis = new ZipInputStream(content.open)\n          Stream.continually(zis.getNextEntry).\n                takeWhile(_ != null).\n                flatMap { _ =>\n                    val br = new BufferedReader(new InputStreamReader(zis))\n                    Stream.continually(br.readLine()).takeWhile(_ != null)\n                }\n    }\n    ",
+      "user": "anonymous",
+      "dateUpdated": "2021-01-22T15:31:14+0100",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1610963802415_1090952538",
+      "id": "paragraph_1610963802415_1090952538",
+      "dateCreated": "2021-01-18T10:56:42+0100",
+      "status": "READY",
+      "$$hashKey": "object:2311"
+    },
+    {
+      "text": "// Union des datasets en anglais et autres langues\n\nval eventDF = textRDD_eng.union(textRDD_translate).toDF()\n.withColumn(\"GLOBALEVENTID\", split($\"value\", \"\\\\t\").getItem(0))\n.withColumn(\"Day\", split($\"value\", \"\\\\t\").getItem(1))\n.withColumn(\"MonthYear\", split($\"value\", \"\\\\t\").getItem(2))\n.withColumn(\"Year\", split($\"value\", \"\\\\t\").getItem(3))\n.withColumn(\"FractionDate\", split($\"value\", \"\\\\t\").getItem(4))\n.withColumn(\"Actor1Code\", split($\"value\", \"\\\\t\").getItem(5))\n.withColumn(\"Actor1Name\", split($\"value\", \"\\\\t\").getItem(6))\n.withColumn(\"Actor1CountryCode\", split($\"value\", \"\\\\t\").getItem(7))\n.withColumn(\"Actor1KnownGroupCode\", split($\"value\", \"\\\\t\").getItem(8))\n.withColumn(\"Actor1EthnicCode\", split($\"value\", \"\\\\t\").getItem(9))\n.withColumn(\"Actor1Religion1Code\", split($\"value\", \"\\\\t\").getItem(10))\n.withColumn(\"Actor1Religion2Code\", split($\"value\", \"\\\\t\").getItem(11))\n.withColumn(\"Actor1Type1Code\", split($\"value\", \"\\\\t\").getItem(12))\n.withColumn(\"Actor1Type2Code\", split($\"value\", \"\\\\t\").getItem(13))\n.withColumn(\"Actor1Type3Code\", split($\"value\", \"\\\\t\").getItem(14))\n.withColumn(\"Actor2Code\", split($\"value\", \"\\\\t\").getItem(15))\n.withColumn(\"Actor2Name\", split($\"value\", \"\\\\t\").getItem(16))\n.withColumn(\"Actor2CountryCode\", split($\"value\", \"\\\\t\").getItem(17))\n.withColumn(\"Actor2KnownGroupCode\", split($\"value\", \"\\\\t\").getItem(18))\n.withColumn(\"Actor2EthnicCode\", split($\"value\", \"\\\\t\").getItem(19))\n.withColumn(\"Actor2Religion1Code\", split($\"value\", \"\\\\t\").getItem(20))\n.withColumn(\"Actor2Religion2Code\", split($\"value\", \"\\\\t\").getItem(21))\n.withColumn(\"Actor2Type1Code\", split($\"value\", \"\\\\t\").getItem(22))\n.withColumn(\"Actor2Type2Code\", split($\"value\", \"\\\\t\").getItem(23))\n.withColumn(\"Actor2Type3Code\", split($\"value\", \"\\\\t\").getItem(24))\n.withColumn(\"IsRootEvent\", split($\"value\", \"\\\\t\").getItem(25))\n.withColumn(\"EventCode\", split($\"value\", \"\\\\t\").getItem(26))\n.withColumn(\"EventBaseCode\", split($\"value\", \"\\\\t\").getItem(27))\n.withColumn(\"EventRootCode\", split($\"value\", \"\\\\t\").getItem(28))\n.withColumn(\"QuadClass\", split($\"value\", \"\\\\t\").getItem(29))\n.withColumn(\"GoldsteinScale\", split($\"value\", \"\\\\t\").getItem(30))\n.withColumn(\"NumMentions\", split($\"value\", \"\\\\t\").getItem(31))\n.withColumn(\"NumSources\", split($\"value\", \"\\\\t\").getItem(32))\n.withColumn(\"NumArticles\", split($\"value\", \"\\\\t\").getItem(33))\n.withColumn(\"AvgTone\", split($\"value\", \"\\\\t\").getItem(34))\n.withColumn(\"Actor1Geo_Type\", split($\"value\", \"\\\\t\").getItem(35))\n.withColumn(\"Actor1Geo_FullName\", split($\"value\", \"\\\\t\").getItem(36))\n.withColumn(\"Actor1Geo_CountryCode\", split($\"value\", \"\\\\t\").getItem(37))\n.withColumn(\"Actor1Geo_ADM1Code\", split($\"value\", \"\\\\t\").getItem(38))\n.withColumn(\"Actor1Geo_ADM2Code\", split($\"value\", \"\\\\t\").getItem(39))\n.withColumn(\"Actor1Geo_Lat\", split($\"value\", \"\\\\t\").getItem(40))\n.withColumn(\"Actor1Geo_Long\", split($\"value\", \"\\\\t\").getItem(41))\n.withColumn(\"Actor1Geo_FeatureID\", split($\"value\", \"\\\\t\").getItem(42))\n.withColumn(\"Actor2Geo_Type\", split($\"value\", \"\\\\t\").getItem(43))\n.withColumn(\"Actor2Geo_FullName\", split($\"value\", \"\\\\t\").getItem(44))\n.withColumn(\"Actor2Geo_CountryCode\", split($\"value\", \"\\\\t\").getItem(45))\n.withColumn(\"Actor2Geo_ADM1Code\", split($\"value\", \"\\\\t\").getItem(46))\n.withColumn(\"Actor2Geo_ADM2Code\", split($\"value\", \"\\\\t\").getItem(47))\n.withColumn(\"Actor2Geo_Lat\", split($\"value\", \"\\\\t\").getItem(48))\n.withColumn(\"Actor2Geo_Long\", split($\"value\", \"\\\\t\").getItem(49))\n.withColumn(\"Actor2Geo_FeatureID\", split($\"value\", \"\\\\t\").getItem(50))\n.withColumn(\"ActionGeo_Type\", split($\"value\", \"\\\\t\").getItem(51))\n.withColumn(\"ActionGeo_FullName\", split($\"value\", \"\\\\t\").getItem(52))\n.withColumn(\"ActionGeo_CountryCode\", split($\"value\", \"\\\\t\").getItem(53))\n.withColumn(\"ActionGeo_ADM1Code\", split($\"value\", \"\\\\t\").getItem(54))\n.withColumn(\"ActionGeo_ADM2Code\", split($\"value\", \"\\\\t\").getItem(55))\n.withColumn(\"ActionGeo_Lat\", split($\"value\", \"\\\\t\").getItem(56))\n.withColumn(\"ActionGeo_Long\", split($\"value\", \"\\\\t\").getItem(57))\n.withColumn(\"ActionGeo_FeatureID\", split($\"value\", \"\\\\t\").getItem(58))\n.withColumn(\"DATEADDED\", split($\"value\", \"\\\\t\").getItem(59))\n.withColumn(\"SOURCEURL\", split($\"value\", \"\\\\t\").getItem(60))\n.drop($\"value\")",
+      "user": "anonymous",
+      "dateUpdated": "2021-01-18T12:59:28+0100",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1610964571112_284753769",
+      "id": "paragraph_1610964571112_284753769",
+      "dateCreated": "2021-01-18T11:09:31+0100",
+      "status": "READY",
+      "$$hashKey": "object:2312"
+    },
+    {
+      "text": "%md \n### 2.b  GKG",
+      "user": "anonymous",
+      "dateUpdated": "2021-01-18T11:08:15+0100",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<h3>2.b  GKG</h3>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1610963804281_1877906313",
+      "id": "paragraph_1610963804281_1877906313",
+      "dateCreated": "2021-01-18T10:56:44+0100",
+      "dateStarted": "2021-01-18T11:08:15+0100",
+      "dateFinished": "2021-01-18T11:08:15+0100",
+      "status": "FINISHED",
+      "$$hashKey": "object:2313"
+    },
+    {
+      "text": "// meme opération pour les fichers GKG\n\nval gkgRDD_eng = sc.binaryFiles(\"s3://delin-jia-telecom-msbgd2020/20201001[0-9]*.gkg.CSV.zip\").\n   flatMap { \n       case (name: String, content: PortableDataStream) =>\n          val zis = new ZipInputStream(content.open)\n          Stream.continually(zis.getNextEntry).\n                takeWhile(_ != null).\n                flatMap { _ =>\n                    val br = new BufferedReader(new InputStreamReader(zis))\n                    Stream.continually(br.readLine()).takeWhile(_ != null)\n                }\n    }\n\nval gkgRDD_translate = sc.binaryFiles(\"s3://delin-jia-telecom-msbgd2020/20201001[0-9]*.translation.gkg.CSV.zip\"). \n   flatMap {  // decompresser les fichiers\n       case (name: String, content: PortableDataStream) =>\n          val zis = new ZipInputStream(content.open)\n          Stream.continually(zis.getNextEntry).\n                takeWhile(_ != null).\n                flatMap { _ =>\n                    val br = new BufferedReader(new InputStreamReader(zis))\n                    Stream.continually(br.readLine()).takeWhile(_ != null)\n                }\n    }\n",
+      "user": "anonymous",
+      "dateUpdated": "2021-01-22T15:33:53+0100",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1610964496086_1957880753",
+      "id": "paragraph_1610964496086_1957880753",
+      "dateCreated": "2021-01-18T11:08:16+0100",
+      "status": "READY",
+      "$$hashKey": "object:2314"
+    },
+    {
+      "user": "anonymous",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1611325954516_290712272",
+      "id": "paragraph_1611325954516_290712272",
+      "dateCreated": "2021-01-22T15:32:34+0100",
+      "status": "READY",
+      "focus": true,
+      "$$hashKey": "object:6071",
+      "text": "// Union des datasets en anglais et autres langues\n\nval gkgDF = gkgRDD_eng.union(gkgRDD_translate).toDF()\n.withColumn(\"GKGRECORDID\", split($\"value\", \"\\\\t\").getItem(0))\n.withColumn(\"DATE\", split($\"value\", \"\\\\t\").getItem(1))\n.withColumn(\"SourceCollectionIdentifier\", split($\"value\", \"\\\\t\").getItem(2))\n.withColumn(\"SourceCommonName\", split($\"value\", \"\\\\t\").getItem(3))\n.withColumn(\"DocumentIdentifier\", split($\"value\", \"\\\\t\").getItem(4))\n.withColumn(\"Counts\", split($\"value\", \"\\\\t\").getItem(5))\n.withColumn(\"V2Counts\", split($\"value\", \"\\\\t\").getItem(6))\n.withColumn(\"Themes\", split($\"value\", \"\\\\t\").getItem(7))\n.withColumn(\"V2Themes\", split($\"value\", \"\\\\t\").getItem(8))\n.withColumn(\"Locations\", split($\"value\", \"\\\\t\").getItem(9))\n.withColumn(\"V2Locations\", split($\"value\", \"\\\\t\").getItem(10))\n.withColumn(\"Persons\", split($\"value\", \"\\\\t\").getItem(11))\n.withColumn(\"V2Persons\", split($\"value\", \"\\\\t\").getItem(12))\n.withColumn(\"Organizations\", split($\"value\", \"\\\\t\").getItem(13))\n.withColumn(\"V2Organizations\", split($\"value\", \"\\\\t\").getItem(14))\n.withColumn(\"V2Tone\", split($\"value\", \"\\\\t\").getItem(15))\n.withColumn(\"Dates\", split($\"value\", \"\\\\t\").getItem(16))\n.withColumn(\"GCAM\", split($\"value\", \"\\\\t\").getItem(17))\n.withColumn(\"SharingImage\", split($\"value\", \"\\\\t\").getItem(18))\n.withColumn(\"RelatedImages\", split($\"value\", \"\\\\t\").getItem(19))\n.withColumn(\"SocialImageEmbeds\", split($\"value\", \"\\\\t\").getItem(20))\n.withColumn(\"SocialVideoEmbeds\", split($\"value\", \"\\\\t\").getItem(21))\n.withColumn(\"Quotations\", split($\"value\", \"\\\\t\").getItem(22))\n.withColumn(\"AllNames\", split($\"value\", \"\\\\t\").getItem(23))\n.withColumn(\"Amounts\", split($\"value\", \"\\\\t\").getItem(24))\n.withColumn(\"TranslationInfo\", split($\"value\", \"\\\\t\").getItem(25))\n.withColumn(\"Extras\", split($\"value\", \"\\\\t\").getItem(26))\n.drop($\"value\")",
+      "dateUpdated": "2021-01-22T15:32:45+0100"
+    },
+    {
+      "text": "%md \n### 2.c  MENTIONS",
+      "user": "anonymous",
+      "dateUpdated": "2021-01-18T11:19:07+0100",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<h3>2.c  MENTIONS</h3>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1610963805138_541815298",
+      "id": "paragraph_1610963805138_541815298",
+      "dateCreated": "2021-01-18T10:56:45+0100",
+      "dateStarted": "2021-01-18T11:19:07+0100",
+      "dateFinished": "2021-01-18T11:19:07+0100",
+      "status": "FINISHED",
+      "$$hashKey": "object:2315"
+    },
+    {
+      "text": "// meme opération pour les ficher MENTIONS\n\nval mentionRDD_eng = sc.binaryFiles(\"s3://delin-jia-telecom-msbgd2020/20201001[0-9]*.mentions.CSV.zip\").\n   flatMap { \n       case (name: String, content: PortableDataStream) =>\n          val zis = new ZipInputStream(content.open)\n          Stream.continually(zis.getNextEntry).\n                takeWhile(_ != null).\n                flatMap { _ =>\n                    val br = new BufferedReader(new InputStreamReader(zis))\n                    Stream.continually(br.readLine()).takeWhile(_ != null)\n                }\n    }\n    \nval mentionRDD_translate = sc.binaryFiles(\"s3://delin-jia-telecom-msbgd2020/20201001[0-9]*.translation.mentions.CSV.zip\"). \n   flatMap {  // decompresser les fichiers\n       case (name: String, content: PortableDataStream) =>\n          val zis = new ZipInputStream(content.open)\n          Stream.continually(zis.getNextEntry).\n                takeWhile(_ != null).\n                flatMap { _ =>\n                    val br = new BufferedReader(new InputStreamReader(zis))\n                    Stream.continually(br.readLine()).takeWhile(_ != null)\n                }\n    }\n    ",
+      "user": "anonymous",
+      "dateUpdated": "2021-01-22T15:34:53+0100",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1610963806242_582876868",
+      "id": "paragraph_1610963806242_582876868",
+      "dateCreated": "2021-01-18T10:56:46+0100",
+      "status": "READY",
+      "$$hashKey": "object:2316"
+    },
+    {
+      "text": "// combination de deux DF \nval mentionDF = mentionRDD_eng.union(mentionRDD_translate).toDF()\n.withColumn(\"GLOBALEVENTID\", split($\"value\", \"\\\\t\").getItem(0))\n.withColumn(\"EventTimeDate\", split($\"value\", \"\\\\t\").getItem(1))\n.withColumn(\"MentionTimeDate\", split($\"value\", \"\\\\t\").getItem(2))\n.withColumn(\"MentionType\", split($\"value\", \"\\\\t\").getItem(3))\n.withColumn(\"MentionSourceName\", split($\"value\", \"\\\\t\").getItem(4))\n.withColumn(\"MentionIdentifier\", split($\"value\", \"\\\\t\").getItem(5))\n.withColumn(\"SentenceID\", split($\"value\", \"\\\\t\").getItem(6))\n.withColumn(\"Actor1CharOffset\", split($\"value\", \"\\\\t\").getItem(7))\n.withColumn(\"Actor2CharOffset\", split($\"value\", \"\\\\t\").getItem(8))\n.withColumn(\"ActionCharOffset\", split($\"value\", \"\\\\t\").getItem(9))\n.withColumn(\"InRawText\", split($\"value\", \"\\\\t\").getItem(10))\n.withColumn(\"Confidence\", split($\"value\", \"\\\\t\").getItem(11))\n.withColumn(\"MentionDocLen\", split($\"value\", \"\\\\t\").getItem(12))\n.withColumn(\"MentionDocTone\", split($\"value\", \"\\\\t\").getItem(13))\n.withColumn(\"MentionDocTranslationInfo\", split($\"value\", \"\\\\t\").getItem(14))\n.withColumn(\"Extras\", split($\"value\", \"\\\\t\").getItem(15))\n// ici, on rajoute une colonne 'Langue' à l'aide de la colonne existante 'MentionDocTranslationInfo'\n// si cette colonne est vide, alors on écrite eng (anglais) dans 'Langue', sinon on traite la colonne afin d'avoir la propre langue\n.withColumn(\"Langue_1\", when (col(\"MentionDocTranslationInfo\") === \"\", \":eng\").otherwise(col(\"MentionDocTranslationInfo\")))    \n.withColumn(\"Langue_2\", split($\"Langue_1\", \";\").getItem(0))\n.withColumn(\"Langue\", split($\"Langue_2\", \":\").getItem(1))\n.drop($\"Langue_1\")\n.drop($\"Langue_2\")\n.drop($\"value\")",
+      "user": "anonymous",
+      "dateUpdated": "2021-01-22T15:38:27+0100",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1610965530299_1785598865",
+      "id": "paragraph_1610965530299_1785598865",
+      "dateCreated": "2021-01-18T11:25:30+0100",
+      "status": "READY",
+      "$$hashKey": "object:2317"
+    },
+    {
+      "text": "%md\n### 3. REQUETES",
+      "user": "anonymous",
+      "dateUpdated": "2021-01-18T11:25:26+0100",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<h3>3. REQUETES</h3>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1610963807771_1325410881",
+      "id": "paragraph_1610963807771_1325410881",
+      "dateCreated": "2021-01-18T10:56:47+0100",
+      "dateStarted": "2021-01-18T11:25:26+0100",
+      "dateFinished": "2021-01-18T11:25:26+0100",
+      "status": "FINISHED",
+      "$$hashKey": "object:2318"
+    },
+    {
+      "text": "%md\n\nDans cette partie, nous allons faire les requetes pour chaque question grâce aux DFs préparés dans la session précédente.\nAfin de réaliser ça, nous allons d'abord préparer les DFs conjoints.",
+      "user": "anonymous",
+      "dateUpdated": "2021-01-22T15:44:56+0100",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1611326307791_620193913",
+      "id": "paragraph_1611326307791_620193913",
+      "dateCreated": "2021-01-22T15:38:27+0100",
+      "status": "FINISHED",
+      "focus": true,
+      "$$hashKey": "object:6140",
+      "dateFinished": "2021-01-22T15:44:56+0100",
+      "dateStarted": "2021-01-22T15:44:56+0100",
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<p>Dans cette partie, nous allons faire les requetes pour chaque question grâce aux DFs préparés dans la session précédente.<br />\nAfin de réaliser ça, nous allons d&rsquo;abord préparer les DFs conjoints.</p>\n\n</div>"
+          }
+        ]
+      }
+    },
+    {
+      "text": "// Préparation préliminaire\n\nval eventDF_selected  = eventDF.select(\"GLOBALEVENTID\",\"Day\",\"MonthYear\",\"Year\",\"NumMentions\",\"NumArticles\",\"ActionGeo_CountryCode\").cache()\n\nval gkgDF_selected = gkgDF.select(\"GKGRECORDID\",\"DATE\",\"SourceCommonName\",\"DocumentIdentifier\",\"Themes\",\"V2Locations\",\"Persons\",\"V2Tone\").cache()\n\nval mentionDF_selected = mentionDF.select(\"GLOBALEVENTID\",\"EventTimeDate\",\"MentionTimeDate\",\"MentionSourceName\",\"MentionIdentifie\",\"MentionDocTranslationInfo\",\"Langue\").cache()\n\n// nous combine eventDF avec mentionDF grâce à GlobalEventID\nval event_mention_DF = eventDF_selected.join(mentionDF_selected,\"GlobalEventID\")      \n\n// nous combine mentionDF avec gkgDF grâce à DocumentIdentifier = MentionIdentifier \nval mention_gkg_DF = mentionDF_selected.join(gkgDF_selected, mentionDF_selected(\"MentionIdentifier\") ===  gkgDF_selected(\"DocumentIdentifier\"))\n\n// nous combine enfin trois DF en une DF grâce à GlobalEventID\nval event_mention_gkg_DF = mention_gkg_DF.join(eventDF_selected,\"GlobalEventID\")",
+      "user": "anonymous",
+      "dateUpdated": "2021-01-22T15:50:46+0100",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1610965207358_1676725797",
+      "id": "paragraph_1610965207358_1676725797",
+      "dateCreated": "2021-01-18T11:20:07+0100",
+      "status": "READY",
+      "$$hashKey": "object:2320",
+      "focus": true
+    },
+    {
+      "text": "%md\n### 1. afficher le nombre d’articles/évènements qui parlent de COVID qu’il y a eu pour chaque triplet (jour, pays de l’évènement, langue de l’article)",
+      "user": "anonymous",
+      "dateUpdated": "2021-01-18T11:24:44+0100",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<h3>1. afficher le nombre d’articles/évènements qui parlent de COVID qu’il y a eu pour chaque triplet (jour, pays de l’évènement, langue de l’article)</h3>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1610965205163_171866066",
+      "id": "paragraph_1610965205163_171866066",
+      "dateCreated": "2021-01-18T11:20:05+0100",
+      "dateStarted": "2021-01-18T11:24:44+0100",
+      "dateFinished": "2021-01-18T11:24:44+0100",
+      "status": "FINISHED",
+      "$$hashKey": "object:2319"
+    },
+    {
+      "text": "// filtre sur themes pour trouver les articles qui parlent de COVID\nval q1 = event_mention_gkg_DF\n.filter(col(\"Themes\").contains(\"COVID\"))\n.filter($\"ActionGeo_CountryCode\" !== \"\")\n\nval q1_DF = q1.\n.select(\"GLOBALEVENTID\", \"DATE\", \"Langue\", \"ActionGeo_CountryCode\")\n.groupBy(\"ActionGeo_CountryCode\", \"DATE\", \"Langue\", \"GLOBALEVENTID\")\n.count().sort(desc(\"count\"))\n\nq1_DF.show()",
+      "user": "anonymous",
+      "dateUpdated": "2021-01-22T15:56:37+0100",
+      "progress": 40,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "+---------------------+--------+------+-------------+-----+\n|ActionGeo_CountryCode|     Day|Langue|GLOBALEVENTID|count|\n+---------------------+--------+------+-------------+-----+\n|                     |20201112|   bul|    954593616|   32|\n|                   BU|20201116|   bul|    954776867|   16|\n|                   BU|20201116|   bul|    954775995|    8|\n|                     |20201116|   bul|    954776865|    8|\n|                   AM|20201121|   rus|    955695825|    4|\n|                   HU|20201130|   rus|    957144621|    4|\n|                   RS|20201119|   rus|    955377420|    4|\n|                   UP|20201102|   ukr|    953716239|    4|\n|                   HU|20201130|   rus|    957144871|    4|\n|                   NZ|20201112|   spa|    954607014|    4|\n|                     |20201119|   eng|    955189523|    3|\n|                   US|20201118|   eng|    954939070|    2|\n|                   IS|20201122|   eng|    955759439|    2|\n|                   MJ|20201121|   eng|    955672283|    2|\n|                   US|20201124|   eng|    956058904|    1|\n|                   US|20201124|   eng|    956058913|    1|\n|                   US|20201118|   eng|    954940806|    1|\n|                   US|20201118|   eng|    955149986|    1|\n|                   IN|20201119|   eng|    955218613|    1|\n|                   BR|20201118|   eng|    954938170|    1|\n+---------------------+--------+------+-------------+-----+\nonly showing top 20 rows\n\n\u001b[1m\u001b[34mq1_test\u001b[0m: \u001b[1m\u001b[32morg.apache.spark.sql.Dataset[org.apache.spark.sql.Row]\u001b[0m = [ActionGeo_CountryCode: string, Day: string ... 3 more fields]\n"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "SPARK JOB",
+          "tooltip": "View in Spark web UI",
+          "group": "spark",
+          "values": [
+            {
+              "jobUrl": "http://192.168.0.18:4040/jobs/job?id=81",
+              "$$hashKey": "object:6393"
+            }
+          ],
+          "interpreterSettingId": "spark"
+        }
+      },
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1611257135585_582001572",
+      "id": "paragraph_1611257135585_582001572",
+      "dateCreated": "2021-01-21T20:25:35+0100",
+      "dateStarted": "2021-01-21T20:25:55+0100",
+      "dateFinished": "2021-01-21T20:25:58+0100",
+      "status": "FINISHED",
+      "$$hashKey": "object:2322"
+    },
+    {
+      "text": "%md \n### 2. pour un pays donné en paramètre, affichez les évènements qui y ont eu place triées par le nombre de mentions (tri décroissant); permettez une agrégation par jour/mois/année",
+      "user": "anonymous",
+      "dateUpdated": "2021-01-18T11:24:50+0100",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<h3>2. pour un pays donné en paramètre, affichez les évènements qui y ont eu place triées par le nombre de mentions (tri décroissant); permettez une agrégation par jour/mois/année</h3>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1610963807413_914770321",
+      "id": "paragraph_1610963807413_914770321",
+      "dateCreated": "2021-01-18T10:56:47+0100",
+      "dateStarted": "2021-01-18T11:24:50+0100",
+      "dateFinished": "2021-01-18T11:24:50+0100",
+      "status": "FINISHED",
+      "$$hashKey": "object:2323"
+    },
+    {
+      "text": "val q2 = event_mention_DF\n.select(\"ActionGeo_CountryCode\",\"Day\",\"MonthYear\",\"Year\",\"GLOBALEVENTID\")\n.groupBy(\"GLOBALEVENTID\", \"Day\", \"MonthYear\", \"Year\", \"ActionGeo_CountryCode\")\n.count()\n.sort($\"count\".desc)\n\nval q2_DF = q2                                                     \n.withColumnRenamed(\"Day\", \"jour\")\n.withColumnRenamed(\"ActionGeo_CountryCode\", \"pays\")\n.withColumnRenamed(\"count\", \"nombre_mentions\")\n.withColumnRenamed(\"GLOBALEVENTID\", \"evenement\")\n",
+      "user": "anonymous",
+      "dateUpdated": "2021-01-18T14:34:40+0100",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1610965207782_672060761",
+      "id": "paragraph_1610965207782_672060761",
+      "dateCreated": "2021-01-18T11:20:07+0100",
+      "status": "READY",
+      "$$hashKey": "object:2324"
+    },
+    {
+      "text": "%md\n### 3. pour une source de donnés passée en paramètre (gkg.SourceCommonName) affichez les thèmes, personnes, lieux dont les articles de cette sources parlent ainsi que le le nombre d’articles et le ton moyen des articles (pour chaque thème/personne/lieu); permettez une agrégation par jour/mois/année.",
+      "user": "anonymous",
+      "dateUpdated": "2021-01-18T11:24:57+0100",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<h3>3. pour une source de donnés passée en paramètre (gkg.SourceCommonName) affichez les thèmes, personnes, lieux dont les articles de cette sources parlent ainsi que le le nombre d’articles et le ton moyen des articles (pour chaque thème/personne/lieu); permettez une agrégation par jour/mois/année.</h3>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1610965208193_1789522195",
+      "id": "paragraph_1610965208193_1789522195",
+      "dateCreated": "2021-01-18T11:20:08+0100",
+      "dateStarted": "2021-01-18T11:24:57+0100",
+      "dateFinished": "2021-01-18T11:24:57+0100",
+      "status": "FINISHED",
+      "$$hashKey": "object:2326"
+    },
+    {
+      "user": "anonymous",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1611328702784_929609747",
+      "id": "paragraph_1611328702784_929609747",
+      "dateCreated": "2021-01-22T16:18:22+0100",
+      "status": "READY",
+      "focus": true,
+      "$$hashKey": "object:6687",
+      "text": "// on prepare une fonction pour couper\nval slice = udf((string : String, from : Int, to : Int) => string.slice(from,to))",
+      "dateUpdated": "2021-01-22T16:19:53+0100"
+    },
+    {
+      "user": "anonymous",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1611328311067_1271951895",
+      "id": "paragraph_1611328311067_1271951895",
+      "dateCreated": "2021-01-22T16:11:51+0100",
+      "status": "READY",
+      "focus": true,
+      "$$hashKey": "object:6522",
+      "text": "// un DF pour personnes\n\nval q3_persons = gkgDF_selected\n.select(\"SourceCommonName\",\"DATE\",\"DocumentIdentifier\",\"V2Persons\",\"V2Tone\")\n.withColumn(\"V2Tone_split\",split($\"V2Tone\", \",\").getItem(0))\n.withColumn(\"V2Tone_float\",col(\"V2Tone_split\").cast(\"Float\"))\n.withColumn(\"Persons_split\", split($\"Persons\", \";\"))\n.withColumn(\"Persons_unique\",explode($\"Persons_split\"))\n.withColumn(\"persons\", split($\"Persons_unique\", \",\").getItem(0))\n.withColumn(\"YEAR\", slice($\"DATE\",lit(0),lit(4)))\n.withColumn(\"MONTH\", slice($\"DATE\",lit(4),lit(6)))\n.withColumn(\"DAY\", slice($\"DATE\",lit(6),lit(8)))\n.withColumn(\"date\", concat_ws(\"/\",$\"YEAR\",$\"MONTH\",$\"DAY\"))\n.withColumn(\"mois_annee\", concat_ws(\"/\",$\"YEAR\",$\"MONTH\"))\n.drop(\"MONTH\")\n.drop($\"DAY\")\n.drop($\"DATE\")\n.drop($\"Persons_split\")\n.drop($\"Persons_unique\")\n.drop($\"Persons\")\n",
+      "dateUpdated": "2021-01-22T16:22:40+0100"
+    },
+    {
+      "text": "// Un DF pour themes\n\nval q3_themes = gkgDF_selected.select(\"SourceCommonName\",\"DATE\",\"DocumentIdentifier\",\"V2Themes\",\"V2Tone\")\n.withColumn(\"V2Tone_split\",split($\"V2Tone\", \",\").getItem(0))\n.withColumn(\"V2Tone_float\",col(\"V2Tone_split\").cast(\"Float\"))\n.filter($\"V2Tone_float\".isNotNull)\n.withColumn(\"Themes_split\", split($\"Themes\", \";\"))\n.withColumn(\"Themes_unique\",explode($\"Themes_split\"))\n.withColumn(\"themes\", split($\"Themes_unique\", \",\").getItem(0))\n.withColumn(\"YEAR\", slice($\"DATE\",lit(0),lit(4)))\n.withColumn(\"MONTH\", slice($\"DATE\",lit(4),lit(6)))\n.withColumn(\"DAY\", slice($\"DATE\",lit(6),lit(8)))\n.withColumn(\"date\", concat_ws(\"/\",$\"YEAR\",$\"MONTH\",$\"DAY\"))\n.withColumn(\"mois_annee\", concat_ws(\"/\",$\"YEAR\",$\"MONTH\"))\n.drop(\"MONTH\")\n.drop($\"DAY\")\n.drop($\"DATE\")\n.drop($\"Themes_split\")\n.drop($\"Themes_unique\")\n.drop($\"Themes\")",
+      "user": "anonymous",
+      "dateUpdated": "2021-01-22T16:22:31+0100",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1611314326277_1649933559",
+      "id": "paragraph_1611314326277_1649933559",
+      "dateCreated": "2021-01-22T12:18:46+0100",
+      "status": "READY",
+      "$$hashKey": "object:2329"
+    },
+    {
+      "text": "// un DF pour location\n\nval q3_locations = gkgDF_selected.select(\"SourceCommonName\",\"DATE\",\"DocumentIdentifier\",\"V2Locations\",\"V2Tone\")\n.withColumn(\"V2Tone_split\",split($\"V2Tone\", \",\").getItem(0))\n.withColumn(\"V2Tone_float\",col(\"V2Tone_split\").cast(\"Float\"))\n.filter($\"V2Tone_float\".isNotNull)\n.withColumn(\"Locations_split\", split($\"V2Locations\", \";\"))\n.withColumn(\"locations_unique\",explode($\"Locations_split\"))\n.withColumn(\"Locations\", split($\"locations_unique\", \"#\").getItem(2))   //.withColumn(\"Locations\", split($\"Locations_full\", \",\").getItem(0))\n.withColumn(\"YEAR\", slice($\"DATE\",lit(0),lit(4)))\n.withColumn(\"MONTH\", slice($\"DATE\",lit(4),lit(6)))\n.withColumn(\"DAY\", slice($\"DATE\",lit(6),lit(8)))\n.withColumn(\"date\", concat_ws(\"/\",$\"YEAR\",$\"MONTH\",$\"DAY\"))\n.withColumn(\"mois_annee\", concat_ws(\"/\",$\"YEAR\",$\"MONTH\"))\n.drop(\"MONTH\")\n.drop($\"DAY\")\n.drop($\"DATE\")\n.drop($\"V2Locations\")\n.drop($\"Locations_split\")\n.drop($\"locations_unique\")\n.drop($\"Locations_full\")",
+      "user": "anonymous",
+      "dateUpdated": "2021-01-22T16:24:11+0100",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1611314376527_462748739",
+      "id": "paragraph_1611314376527_462748739",
+      "dateCreated": "2021-01-22T12:19:36+0100",
+      "status": "READY",
+      "$$hashKey": "object:2332"
+    },
+    {
+      "text": "%md\n## 3.  Ecriture des dataframes dans Cassandra",
+      "user": "anonymous",
+      "dateUpdated": "2021-01-18T14:13:44+0100",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<h2>3.  Ecriture des dataframes dans Cassandra</h2>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1610965500481_1158111966",
+      "id": "paragraph_1610965500481_1158111966",
+      "dateCreated": "2021-01-18T11:25:00+0100",
+      "dateStarted": "2021-01-18T14:13:44+0100",
+      "dateFinished": "2021-01-18T14:13:44+0100",
+      "status": "FINISHED",
+      "$$hashKey": "object:2342"
+    },
+    {
+      "text": "%md\nMaintenant, nous allons mettre les tables pretes dans Cassandra et puis execute la commande sur ça.",
+      "user": "anonymous",
+      "dateUpdated": "2021-01-22T16:26:09+0100",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1611329127319_477906225",
+      "id": "paragraph_1611329127319_477906225",
+      "dateCreated": "2021-01-22T16:25:27+0100",
+      "status": "FINISHED",
+      "focus": true,
+      "$$hashKey": "object:6811",
+      "dateFinished": "2021-01-22T16:26:09+0100",
+      "dateStarted": "2021-01-22T16:26:09+0100",
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<p>Maintenant, nous allons mettre les tables pretes dans Cassandra et puis execute la commande sur ça.</p>\n\n</div>"
+          }
+        ]
+      }
+    },
+    {
+      "text": "%md\n### Création de la table 1",
+      "user": "anonymous",
+      "dateUpdated": "2021-01-18T14:29:31+0100",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<h3>Création de la table 1</h3>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1610976568009_101841286",
+      "id": "paragraph_1610976568009_101841286",
+      "dateCreated": "2021-01-18T14:29:28+0100",
+      "dateStarted": "2021-01-18T14:29:31+0100",
+      "dateFinished": "2021-01-18T14:29:31+0100",
+      "status": "FINISHED",
+      "$$hashKey": "object:2343"
+    },
+    {
+      "text": "\nCassandraConnector(sc.getConf).withSessionDo { session =>\n      session.execute(\n          \"\"\"\n             DROP KEYSPACE gdelt;\n          \"\"\"\n          )\n      session.execute(\n          \"\"\"\n             CREATE KEYSPACE IF NOT EXISTS gdelt\n             WITH REPLICATION = {'class': 'SimpleStrategy', 'replication_factor': 3 };\n          \"\"\")\n          session.execute(\n          \"\"\"\n             CREATE TABLE IF NOT EXISTS gdelt.q1(\n             evenement int PRIMARY KEY,\n                date text,\n                pays text,\n                langue_article text,\n                nombre_articles int);\n          \"\"\"\n        )\n}\n\nq1_DF.write\n      .cassandraFormat(\"q1\", \"gdelt\")\n      .mode(org.apache.spark.sql.SaveMode.Overwrite)\n      .options(Map(\"confirm.truncate\" -> \"true\"))\n      .save()\n",
+      "user": "anonymous",
+      "dateUpdated": "2021-01-22T16:27:16+0100",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "ERROR",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "<console>:60: \u001b[31merror: \u001b[0mnot found: value q1_DF\nq1_DF.write\n^\n"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1610972569372_1532799688",
+      "id": "paragraph_1610972569372_1532799688",
+      "dateCreated": "2021-01-18T13:22:49+0100",
+      "dateStarted": "2021-01-20T10:53:18+0100",
+      "dateFinished": "2021-01-20T10:53:18+0100",
+      "status": "ERROR",
+      "$$hashKey": "object:2344"
+    },
+    {
+      "text": "%md\n### Création de la table 2",
+      "user": "anonymous",
+      "dateUpdated": "2021-01-18T14:29:25+0100",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<h3>Création de la table 2</h3>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1610975412977_728206692",
+      "id": "paragraph_1610975412977_728206692",
+      "dateCreated": "2021-01-18T14:10:12+0100",
+      "dateStarted": "2021-01-18T14:29:25+0100",
+      "dateFinished": "2021-01-18T14:29:25+0100",
+      "status": "FINISHED",
+      "$$hashKey": "object:2346"
+    },
+    {
+      "text": "CassandraConnector(sc.getConf).withSessionDo { session =>\n          session.execute (\n          \"\"\"\n             CREATE TABLE IF NOT EXISTS gdelt.q2(\n                jour int,\n                pays text,\n                evenement int,\n                nombre_mentions int,\n             PRIMARY KEY ((pays, evenement), nombre_mentions));\n          \"\"\"\n        )\n}\n\nq2_DF.write\n      .cassandraFormat(\"q2\", \"gdelt\")\n      .mode(org.apache.spark.sql.SaveMode.Overwrite)\n      .options(Map(\"confirm.truncate\" -> \"true\"))\n      .save()\n      ",
+      "user": "anonymous",
+      "dateUpdated": "2021-01-22T16:27:42+0100",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1610976587212_607394829",
+      "id": "paragraph_1610976587212_607394829",
+      "dateCreated": "2021-01-18T14:29:47+0100",
+      "status": "READY",
+      "$$hashKey": "object:2347"
+    },
+    {
+      "text": "%md\n### Création de la table 3",
+      "user": "anonymous",
+      "dateUpdated": "2021-01-18T14:29:45+0100",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "<div class=\"markdown-body\">\n<h3>Création de la table 3</h3>\n\n</div>"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1610976581711_1063447178",
+      "id": "paragraph_1610976581711_1063447178",
+      "dateCreated": "2021-01-18T14:29:41+0100",
+      "dateStarted": "2021-01-18T14:29:45+0100",
+      "dateFinished": "2021-01-18T14:29:45+0100",
+      "status": "FINISHED",
+      "$$hashKey": "object:2349"
+    },
+    {
+      "text": "// TABLE REQUETE 3 PERSONS\n\nCassandraConnector(sc.getConf).withSessionDo { session =>\n          session.execute (\n          \"\"\"\n             CREATE TABLE IF NOT EXISTS gdelt.q3_persons(\n                date int,\n                SourceCommonName text,\n                persons_2 text,\n                nombre_articles int,\n                ton_moyen double,\n             PRIMARY KEY (SourceCommonName, date));\n          \"\"\"\n        )\n}\n\nq3_persons.write\n      .cassandraFormat(\"q3_persons\", \"gdelt\")\n      .mode(org.apache.spark.sql.SaveMode.Overwrite)\n      .options(Map(\"confirm.truncate\" -> \"true\"))\n      .save()\n      ",
+      "user": "anonymous",
+      "dateUpdated": "2021-01-22T16:28:35+0100",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1610976581366_102527872",
+      "id": "paragraph_1610976581366_102527872",
+      "dateCreated": "2021-01-18T14:29:41+0100",
+      "status": "READY",
+      "$$hashKey": "object:2350"
+    },
+    {
+      "text": "// TABLE REQUETE 3 LOCATIONS\nCassandraConnector(sc.getConf).withSessionDo { session =>\n          session.execute (\n          \"\"\"\n             CREATE TABLE IF NOT EXISTS gdelt.q3_locations(\n                date int,\n                SourceCommonName text,\n                locations_2 text,\n                nombre_articles int,\n                ton_moyen double,\n             PRIMARY KEY (SourceCommonName, date));\n          \"\"\"\n        )\n}\n\nq3_locations.write\n      .cassandraFormat(\"q3_locations\", \"gdelt\")\n      .mode(org.apache.spark.sql.SaveMode.Overwrite)\n      .options(Map(\"confirm.truncate\" -> \"true\"))\n      .save()\n      \n\n",
+      "user": "anonymous",
+      "dateUpdated": "2021-01-22T16:28:21+0100",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1610976580081_793431752",
+      "id": "paragraph_1610976580081_793431752",
+      "dateCreated": "2021-01-18T14:29:40+0100",
+      "status": "READY",
+      "$$hashKey": "object:2351"
+    },
+    {
+      "text": "// TABLE REQUETE 3 THEMES\nCassandraConnector(sc.getConf).withSessionDo { session =>\n          session.execute(\n              \"\"\"\n              DROP TABLE gdelt.requete3_themes\n              \"\"\"\n              )\n          session.execute (\n          \"\"\"\n             CREATE TABLE IF NOT EXISTS gdelt.q3_themes(\n                date int,\n                SourceCommonName text,\n                themes_2 text,\n                nombre_articles int,\n                ton_moyen double,\n             PRIMARY KEY (SourceCommonName, date));\n          \"\"\"\n        )\n}\n\nq3_themes.write\n      .cassandraFormat(\"q3_themes\", \"gdelt\")\n      .mode(org.apache.spark.sql.SaveMode.Overwrite)\n      .options(Map(\"confirm.truncate\" -> \"true\"))\n      .save()\n      ",
+      "user": "anonymous",
+      "dateUpdated": "2021-01-22T16:28:14+0100",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1610972573517_1446457005",
+      "id": "paragraph_1610972573517_1446457005",
+      "dateCreated": "2021-01-18T13:22:53+0100",
+      "status": "READY",
+      "$$hashKey": "object:2352"
+    },
+    {
+      "text": "",
+      "user": "anonymous",
+      "dateUpdated": "2021-01-21T19:18:22+0100",
+      "progress": 0,
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1610977410133_648010642",
+      "id": "paragraph_1610977410133_648010642",
+      "dateCreated": "2021-01-18T14:43:30+0100",
+      "status": "READY",
+      "$$hashKey": "object:2354"
+    }
+  ],
+  "name": "2020_Projet GDELT_Exploration",
+  "id": "2FYAKJCF1",
+  "defaultInterpreterGroup": "spark",
+  "version": "0.9.0",
+  "noteParams": {},
+  "noteForms": {},
+  "angularObjects": {},
+  "config": {
+    "isZeppelinNotebookCronEnable": false,
+    "looknfeel": "default",
+    "personalizedMode": "false"
+  },
+  "info": {},
+  "path": "/2020_Projet GDELT_Exploration"
+}
